@@ -1,7 +1,7 @@
 # Release Report
 
-Version: 5358c32
-Environment: GitHub pushed; Cloudflare Pages pending auth
+Version: 8a01fb4
+Environment: Cloudflare Pages production
 Changes:
 - Reworked the mobile-first UI into a daily writing workspace.
 - Preserved discovery types, 200-character threshold, local persistence, reminder control, and AI generation flow.
@@ -26,6 +26,16 @@ Rollback:
 Known risks:
 - Browser notifications require user permission and an open browser context.
 - Real AI generation requires `OPENAI_API_KEY` configured in the deployment environment.
-- Cloudflare deployment is pending Wrangler account authorization.
+- Real AI generation requires `OPENAI_API_KEY` configured in the deployment environment.
+- Branch preview URL reported by Wrangler had a local TLS handshake failure in `curl`; production Pages URL passed smoke.
 
 Owner: Hermes Orchestrator
+
+Production URL:
+- https://discovery-journal-d20.pages.dev/
+
+Deployment:
+- Cloudflare Pages project: `discovery-journal`
+- Deploy command: `wrangler pages deploy dist --project-name discovery-journal --branch main`
+- Deployment preview reported by Wrangler: `https://1923fb1a.discovery-journal-d20.pages.dev`
+- Production smoke: passed against `https://discovery-journal-d20.pages.dev/`

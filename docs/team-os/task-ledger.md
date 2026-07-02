@@ -5,7 +5,7 @@
 Task ID: DJ-001
 Project: discovery-journal
 Title: Mobile UI iteration, Git publishing, and Cloudflare deploy
-Status: blocked
+Status: done
 Owner Agent: Hermes Orchestrator
 Reviewer Agent: Code Review Agent / Test Agent / DevOps Agent
 Priority: P1
@@ -25,8 +25,8 @@ Evidence required:
 - Browser smoke result and screenshot.
 - Git remote / push result.
 - Cloudflare deployment URL and smoke result.
-Current blocker: Cloudflare Wrangler OAuth timed out before account authorization completed.
-Next smallest action: Human owner completes `wrangler login`, then run `npm run build` and `npx --yes wrangler pages deploy dist --project-name discovery-journal --branch main`.
+Current blocker: None.
+Next smallest action: Configure `OPENAI_API_KEY` in Cloudflare Pages if real AI generation is required.
 Links:
 - Team OS source: `/Users/edy/.agents/team-os`
 
@@ -42,6 +42,7 @@ Decision: CONTINUE
 | L1 | UEAgent | Engineering Agent | REWORK | Make writing the dominant first-screen task and reduce dashboard weight. | Updated `src/main.jsx` and `src/styles.css`; mobile screenshot. | DONE |
 | L2 | DevOps Agent | Engineering Agent | BLOCKER | Add Cloudflare Pages-compatible API implementation. | `functions/api/polish.js` exists and build still passes. | DONE |
 | L3 | DevOps Agent | Hermes | BLOCKER | Resolve GitHub push credentials. | Successful remote push or explicit auth blocker. | DONE |
+| L5 | DevOps Agent | Hermes | BLOCKER | Deploy Cloudflare Pages after OAuth login. | Deployment URL and production smoke result. | DONE |
 | L4 | Test Agent | Engineering Agent | BLOCKER | Run build and browser smoke after UI changes. | Passing command outputs and screenshot artifact. | DONE |
 
 ### 2026-07-02 08:40 Event DJ-001-E1
@@ -103,3 +104,22 @@ Evidence:
 Decision: ESCALATE Cloudflare authorization to human owner.
 Next owner: Human owner
 Close condition: Complete Cloudflare login, then rerun Pages deploy command.
+
+### 2026-07-02 22:14 Event DJ-001-E5
+
+Type: EVIDENCE_ADDED
+From: DevOps Agent
+To: Hermes Orchestrator
+Task: DJ-001
+Gate: Release
+Message: Cloudflare authorization and deployment completed.
+Evidence:
+- `wrangler login`: succeeded for `hahazuo460@gmail.com`.
+- `wrangler pages project create discovery-journal --production-branch main`: succeeded.
+- `wrangler pages deploy dist --project-name discovery-journal --branch main`: succeeded.
+- Production URL: `https://discovery-journal-d20.pages.dev/`.
+- `curl https://discovery-journal-d20.pages.dev`: returned HTML with title `今日发现`.
+- Playwright mobile smoke against production: title `今日发现`, AI button visible.
+Decision: SHIP
+Next owner: Operator Agent
+Close condition: User has production URL, GitHub URL, and known remaining config note.
