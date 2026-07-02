@@ -189,124 +189,132 @@ function App() {
           </div>
         </header>
 
-        <section className="mission-panel">
-          <div className="mission-copy">
-            <span>{formatDate(new Date())}</span>
-            <strong>{remaining === 0 ? '今天的素材已经够生成文稿。' : `还差 ${remaining} 字，完成今日发现。`}</strong>
-          </div>
-          <div className="mission-progress" aria-label={`完成进度 ${progress}%`}>
-            <span style={{ width: `${progress}%` }} />
-          </div>
-        </section>
-
-        <section className="control-strip">
-          <div className="reminder">
-            <div className="reminder-copy">
-              <AlarmClock size={18} />
-              <span>每日提醒</span>
-            </div>
-            <div className="reminder-control">
-              <input
-                value={reminder}
-                inputMode="numeric"
-                pattern="[0-9]{2}:[0-9]{2}"
-                onChange={(event) => setReminder(event.target.value)}
-                aria-label="提醒时间"
-              />
-              <button onClick={enableReminder} aria-label="开启通知提醒">
-                <Bell size={17} />
-                {reminderLabel}
-              </button>
-            </div>
-          </div>
-
-          <div className="stats-row">
-            <div>
-              <span>记录</span>
-              <strong>{stats.total}</strong>
-            </div>
-            <div>
-              <span>字数</span>
-              <strong>{stats.words}</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className="quick-actions" aria-label="新建发现">
-          <button className="business-action" onClick={() => createEntry('business')}>
-            <BriefcaseBusiness size={18} />
-            <span>商机发现</span>
-          </button>
-          <button className="human-action" onClick={() => createEntry('human')}>
-            <UserRoundSearch size={18} />
-            <span>人性发现</span>
-          </button>
-        </section>
-
-        {activeEntry && (
-          <section className="editor">
-            <div className="entry-type">
-              <span className={activeEntry.type === 'business' ? 'pill business' : 'pill human'}>
-                {activeEntry.type === 'business' ? <BriefcaseBusiness size={15} /> : <UserRoundSearch size={15} />}
-                {activeEntry.type === 'business' ? '商机' : '人性'}
-              </span>
-              <span>{formatDate(activeEntry.date)}</span>
-            </div>
-
-            <label className="field-label" htmlFor="entry-title">标题</label>
-            <input
-              id="entry-title"
-              className="title-input"
-              value={activeEntry.title}
-              onChange={(event) => updateEntry(activeEntry.id, { title: event.target.value })}
-              placeholder="给今天的发现起个标题"
-            />
-
-            <label className="field-label" htmlFor="entry-content">原始发现</label>
-            <textarea
-              id="entry-content"
-              value={activeEntry.content}
-              onChange={(event) => updateEntry(activeEntry.id, { content: event.target.value })}
-              placeholder="记录现象、人物、对话、交易信号或反常识细节。先写真实素材，再让 AI 整理成稿。"
-            />
-
-            <div className="progress-row">
-              <div className="progress-track">
+        <div className="workspace-grid">
+          <aside className="side-panel">
+            <section className="mission-panel">
+              <div className="mission-copy">
+                <span>{formatDate(new Date())}</span>
+                <strong>{remaining === 0 ? '今天的素材已经够生成文稿。' : `还差 ${remaining} 字，完成今日发现。`}</strong>
+              </div>
+              <div className="mission-progress" aria-label={`完成进度 ${progress}%`}>
                 <span style={{ width: `${progress}%` }} />
               </div>
-              <strong>{count}/200</strong>
-            </div>
+            </section>
 
-            <div className="section-title compact">
-              <Sparkles size={18} />
-              <h2>生成方式</h2>
-            </div>
-            <div className="draft-tabs">
-              {[
-                ['speech', Mic2, '口播稿'],
-                ['research', BookOpenText, '研究文档'],
-                ['action', CheckCircle2, '行动清单'],
-              ].map(([value, Icon, label]) => (
-                <button
-                  key={value}
-                  className={activeEntry.draftType === value ? 'active' : ''}
-                  onClick={() => updateEntry(activeEntry.id, { draftType: value })}
-                >
-                  <Icon size={15} />
-                  {label}
+            <section className="control-strip">
+              <div className="reminder">
+                <div className="reminder-copy">
+                  <AlarmClock size={18} />
+                  <span>每日提醒</span>
+                </div>
+                <div className="reminder-control">
+                  <input
+                    value={reminder}
+                    inputMode="numeric"
+                    pattern="[0-9]{2}:[0-9]{2}"
+                    onChange={(event) => setReminder(event.target.value)}
+                    aria-label="提醒时间"
+                  />
+                  <button onClick={enableReminder} aria-label="开启通知提醒">
+                    <Bell size={17} />
+                    {reminderLabel}
+                  </button>
+                </div>
+              </div>
+
+              <div className="stats-row">
+                <div>
+                  <span>记录</span>
+                  <strong>{stats.total}</strong>
+                </div>
+                <div>
+                  <span>字数</span>
+                  <strong>{stats.words}</strong>
+                </div>
+              </div>
+            </section>
+
+            <section className="quick-actions" aria-label="新建发现">
+              <button className="business-action" onClick={() => createEntry('business')}>
+                <BriefcaseBusiness size={18} />
+                <span>商机发现</span>
+              </button>
+              <button className="human-action" onClick={() => createEntry('human')}>
+                <UserRoundSearch size={18} />
+                <span>人性发现</span>
+              </button>
+            </section>
+          </aside>
+
+          <section className="writing-column">
+            {activeEntry && (
+              <section className="editor">
+                <div className="entry-type">
+                  <span className={activeEntry.type === 'business' ? 'pill business' : 'pill human'}>
+                    {activeEntry.type === 'business' ? <BriefcaseBusiness size={15} /> : <UserRoundSearch size={15} />}
+                    {activeEntry.type === 'business' ? '商机' : '人性'}
+                  </span>
+                  <span>{formatDate(activeEntry.date)}</span>
+                </div>
+
+                <label className="field-label" htmlFor="entry-title">标题</label>
+                <input
+                  id="entry-title"
+                  className="title-input"
+                  value={activeEntry.title}
+                  onChange={(event) => updateEntry(activeEntry.id, { title: event.target.value })}
+                  placeholder="给今天的发现起个标题"
+                />
+
+                <label className="field-label" htmlFor="entry-content">原始发现</label>
+                <textarea
+                  id="entry-content"
+                  value={activeEntry.content}
+                  onChange={(event) => updateEntry(activeEntry.id, { content: event.target.value })}
+                  placeholder="记录现象、人物、对话、交易信号或反常识细节。先写真实素材，再让 AI 整理成稿。"
+                />
+
+                <div className="progress-row">
+                  <div className="progress-track">
+                    <span style={{ width: `${progress}%` }} />
+                  </div>
+                  <strong>{count}/200</strong>
+                </div>
+
+                <div className="section-title compact">
+                  <Sparkles size={18} />
+                  <h2>生成方式</h2>
+                </div>
+                <div className="draft-tabs">
+                  {[
+                    ['speech', Mic2, '口播稿'],
+                    ['research', BookOpenText, '研究文档'],
+                    ['action', CheckCircle2, '行动清单'],
+                  ].map(([value, Icon, label]) => (
+                    <button
+                      key={value}
+                      className={activeEntry.draftType === value ? 'active' : ''}
+                      onClick={() => updateEntry(activeEntry.id, { draftType: value })}
+                    >
+                      <Icon size={15} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <button className="ai-button" onClick={polishWithAi} disabled={count < 200 || isGenerating}>
+                  <Sparkles size={19} />
+                  {isGenerating ? 'AI 生成中' : 'AI 完善成文稿'}
+                  <ChevronRight size={18} />
                 </button>
-              ))}
-            </div>
 
-            <button className="ai-button" onClick={polishWithAi} disabled={count < 200 || isGenerating}>
-              <Sparkles size={19} />
-              {isGenerating ? 'AI 生成中' : 'AI 完善成文稿'}
-              <ChevronRight size={18} />
-            </button>
+                {count < 200 && <p className="hint">还差 {remaining} 字，达到门槛后可生成完整文稿。</p>}
+              </section>
+            )}
+          </section>
 
-            {count < 200 && <p className="hint">还差 {remaining} 字，达到门槛后可生成完整文稿。</p>}
-
-            {activeEntry.generated && (
+          <aside className="insight-panel">
+            {activeEntry?.generated ? (
               <article className="generated">
                 <div>
                   <FileText size={18} />
@@ -314,29 +322,35 @@ function App() {
                 </div>
                 <pre>{activeEntry.generated}</pre>
               </article>
+            ) : (
+              <section className="empty-generated">
+                <Sparkles size={22} />
+                <strong>生成稿会显示在这里</strong>
+                <span>写满 200 字后，可以生成口播稿、研究文档或行动清单。</span>
+              </section>
             )}
-          </section>
-        )}
 
-        <section className="history">
-          <div className="section-title">
-            <Lightbulb size={18} />
-            <h2>发现库</h2>
-            <button className="ghost-icon" aria-label="归档">
-              <Archive size={18} />
-            </button>
-          </div>
-          {entries.map((entry) => (
-            <button
-              key={entry.id}
-              className={entry.id === activeId ? 'history-item active' : 'history-item'}
-              onClick={() => setActiveId(entry.id)}
-            >
-              <span>{entry.title || '未命名发现'}</span>
-              <small>{countText(entry.content)} 字</small>
-            </button>
-          ))}
-        </section>
+            <section className="history">
+              <div className="section-title">
+                <Lightbulb size={18} />
+                <h2>发现库</h2>
+                <button className="ghost-icon" aria-label="归档">
+                  <Archive size={18} />
+                </button>
+              </div>
+              {entries.map((entry) => (
+                <button
+                  key={entry.id}
+                  className={entry.id === activeId ? 'history-item active' : 'history-item'}
+                  onClick={() => setActiveId(entry.id)}
+                >
+                  <span>{entry.title || '未命名发现'}</span>
+                  <small>{countText(entry.content)} 字</small>
+                </button>
+              ))}
+            </section>
+          </aside>
+        </div>
       </section>
     </main>
   );
