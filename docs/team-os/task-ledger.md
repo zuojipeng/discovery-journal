@@ -5,7 +5,7 @@
 Task ID: DJ-001
 Project: discovery-journal
 Title: Mobile UI iteration, Git publishing, and Cloudflare deploy
-Status: in_review
+Status: blocked
 Owner Agent: Hermes Orchestrator
 Reviewer Agent: Code Review Agent / Test Agent / DevOps Agent
 Priority: P1
@@ -25,8 +25,8 @@ Evidence required:
 - Browser smoke result and screenshot.
 - Git remote / push result.
 - Cloudflare deployment URL and smoke result.
-Current blocker: GitHub CLI auth is invalid; Cloudflare deploy still needs credential verification with Node 22 Wrangler.
-Next smallest action: Initialize Git repository, commit, then resolve remote push/deploy credentials.
+Current blocker: Cloudflare Wrangler OAuth timed out before account authorization completed.
+Next smallest action: Human owner completes `wrangler login`, then run `npm run build` and `npx --yes wrangler pages deploy dist --project-name discovery-journal --branch main`.
 Links:
 - Team OS source: `/Users/edy/.agents/team-os`
 
@@ -41,7 +41,7 @@ Decision: CONTINUE
 | --- | --- | --- | --- | --- | --- | --- |
 | L1 | UEAgent | Engineering Agent | REWORK | Make writing the dominant first-screen task and reduce dashboard weight. | Updated `src/main.jsx` and `src/styles.css`; mobile screenshot. | DONE |
 | L2 | DevOps Agent | Engineering Agent | BLOCKER | Add Cloudflare Pages-compatible API implementation. | `functions/api/polish.js` exists and build still passes. | DONE |
-| L3 | DevOps Agent | Hermes | BLOCKER | Resolve GitHub push credentials. | Successful remote push or explicit auth blocker. | OPEN |
+| L3 | DevOps Agent | Hermes | BLOCKER | Resolve GitHub push credentials. | Successful remote push or explicit auth blocker. | DONE |
 | L4 | Test Agent | Engineering Agent | BLOCKER | Run build and browser smoke after UI changes. | Passing command outputs and screenshot artifact. | DONE |
 
 ### 2026-07-02 08:40 Event DJ-001-E1
@@ -86,3 +86,20 @@ Evidence:
 Decision: Continue to Git and Cloudflare release gate.
 Next owner: DevOps Agent
 Close condition: Git push and Cloudflare deployment complete, or credential blocker documented.
+
+### 2026-07-02 08:55 Event DJ-001-E4
+
+Type: EVIDENCE_ADDED
+From: DevOps Agent
+To: Hermes Orchestrator
+Task: DJ-001
+Gate: Release
+Message: GitHub publishing completed; Cloudflare deployment blocked on OAuth authorization.
+Evidence:
+- GitHub remote created and pushed: `https://github.com/zuojipeng/discovery-journal`.
+- Latest pushed commit: `59b5896 Add Cloudflare Pages release config`.
+- `wrangler whoami` with Node 22: failed with `Not logged in`.
+- `wrangler login --browser=false`: attempted multiple times and timed out waiting for authorization code.
+Decision: ESCALATE Cloudflare authorization to human owner.
+Next owner: Human owner
+Close condition: Complete Cloudflare login, then rerun Pages deploy command.
