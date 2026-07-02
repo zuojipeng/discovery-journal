@@ -23,6 +23,13 @@ npm run build
 - 输出目录：`dist`
 - Pages Functions：`functions/api/polish.js`
 
+CLI 部署：
+
+```bash
+npm run build
+npx --yes wrangler pages deploy dist --project-name discovery-journal --branch main
+```
+
 可选环境变量：
 
 - `OPENAI_API_KEY`：启用真实 AI 成稿
