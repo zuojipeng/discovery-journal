@@ -11,7 +11,6 @@ import {
   FileText,
   Lightbulb,
   Mic2,
-  Sparkles,
   UserRoundSearch,
 } from 'lucide-react';
 import './styles.css';
@@ -271,7 +270,7 @@ function App() {
                   id="entry-content"
                   value={activeEntry.content}
                   onChange={(event) => updateEntry(activeEntry.id, { content: event.target.value })}
-                  placeholder="记录现象、人物、对话、交易信号或反常识细节。先写真实素材，再让 AI 整理成稿。"
+                  placeholder="记录现象、人物、对话、交易信号或反常识细节。先写真实素材，再整理成可复用的判断材料。"
                 />
 
                 <div className="progress-row">
@@ -282,8 +281,8 @@ function App() {
                 </div>
 
                 <div className="section-title compact">
-                  <Sparkles size={18} />
-                  <h2>生成方式</h2>
+                  <FileText size={18} />
+                  <h2>转换输出格式</h2>
                 </div>
                 <div className="draft-tabs">
                   {[
@@ -303,8 +302,8 @@ function App() {
                 </div>
 
                 <button className="ai-button" onClick={polishWithAi} disabled={count < 200 || isGenerating}>
-                  <Sparkles size={19} />
-                  {isGenerating ? 'AI 生成中' : 'AI 完善成文稿'}
+                  <FileText size={19} />
+                  {isGenerating ? '整理中' : '深度提炼发现'}
                   <ChevronRight size={18} />
                 </button>
 
@@ -318,15 +317,15 @@ function App() {
               <article className="generated">
                 <div>
                   <FileText size={18} />
-                  <strong>AI 生成稿</strong>
+                  <strong>整理稿预览</strong>
                 </div>
                 <pre>{activeEntry.generated}</pre>
               </article>
             ) : (
               <section className="empty-generated">
-                <Sparkles size={22} />
-                <strong>生成稿会显示在这里</strong>
-                <span>写满 200 字后，可以生成口播稿、研究文档或行动清单。</span>
+                <FileText size={22} />
+                <strong>整理稿会显示在这里</strong>
+                <span>写满 200 字后，可以整理成口播稿、研究文档或行动清单。</span>
               </section>
             )}
 
