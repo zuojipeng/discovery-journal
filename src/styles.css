@@ -38,6 +38,11 @@ textarea {
   font: inherit;
 }
 
+input,
+textarea {
+  min-width: 0;
+}
+
 button {
   cursor: pointer;
 }
@@ -198,7 +203,8 @@ h1 {
 .quick-actions button,
 .editor,
 .history,
-.generated {
+.generated,
+.publish-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--paper);
@@ -265,7 +271,7 @@ h1 {
 
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .stats-row div {
@@ -358,6 +364,34 @@ textarea {
   outline: none;
   color: var(--ink);
   background: var(--paper);
+}
+
+.tag-input-wrap,
+.search-box {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  color: var(--muted);
+  background: var(--paper);
+}
+
+.tag-input-wrap:focus-within,
+.search-box:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(36, 52, 71, 0.12);
+}
+
+.tag-input-wrap input,
+.search-box input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
 }
 
 .title-input:focus,
@@ -488,6 +522,40 @@ pre {
   padding: 14px;
 }
 
+.library-tools {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.filter-tabs,
+.publish-status {
+  display: grid;
+  gap: 6px;
+}
+
+.filter-tabs {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.filter-tabs button,
+.publish-status button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--brand);
+  background: var(--paper);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.filter-tabs .active,
+.publish-status .active {
+  color: #ffffff;
+  border-color: var(--brand);
+  background: var(--brand);
+}
+
 .empty-generated {
   min-height: 180px;
   border: 1px dashed var(--line-strong);
@@ -527,7 +595,7 @@ pre {
 
 .history-item {
   width: 100%;
-  min-height: 50px;
+  min-height: 58px;
   border: 1px solid transparent;
   border-radius: 8px;
   display: grid;
@@ -550,6 +618,84 @@ pre {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 900;
+}
+
+.history-item em {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-list {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.publish-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.publish-panel .section-title {
+  margin-bottom: 0;
+}
+
+.publish-status {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.metrics-grid label,
+.feedback-note {
+  display: grid;
+  gap: 6px;
+}
+
+.metrics-grid span,
+.feedback-note span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.metrics-grid input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: 0;
+  padding: 0 10px;
+  color: var(--ink);
+  background: var(--paper);
+  font-weight: 900;
+}
+
+.metrics-grid input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(36, 52, 71, 0.12);
+}
+
+.feedback-note span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.feedback-note textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.55;
 }
 
 @media (max-width: 1080px) {
@@ -637,7 +783,7 @@ pre {
   }
 
   .stats-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .stats-row div {

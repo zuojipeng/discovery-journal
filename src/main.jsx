@@ -8,9 +8,13 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   ChevronRight,
+  Eye,
   FileText,
   Lightbulb,
+  MessageCircle,
   Mic2,
+  Search,
+  Tags,
   UserRoundSearch,
 } from 'lucide-react';
 import './styles.css';
@@ -27,8 +31,32 @@ const defaultEntries = [
       '今天观察到一家社区咖啡店把新品试喝和会员群结合起来，用户在店内扫码后会收到第二天的限时复购券。这个动作不复杂，但把到店体验、微信群运营和复购激励连在了一起。真正的商机可能不在咖啡本身，而在帮助小店主把一次性客流转成可持续触达的关系资产。很多小店并不缺产品，也不缺短期促销，真正缺的是把顾客重新带回来的低成本机制。如果能做一个轻量工具，自动生成活动话术、优惠节奏和复购提醒，再结合店员执行清单，就可能切入大量社区门店。',
     draftType: 'speech',
     generated: '',
+    tags: ['社区门店', '私域复购'],
+    publish: {
+      status: 'draft',
+      views: '',
+      likes: '',
+      comments: '',
+      saves: '',
+      notes: '',
+    },
   },
 ];
+
+function normalizeEntry(entry) {
+  return {
+    ...entry,
+    tags: Array.isArray(entry.tags) ? entry.tags : [],
+    publish: {
+      status: entry.publish?.status || 'draft',
+      views: entry.publish?.views || '',
+      likes: entry.publish?.likes || '',
+      comments: entry.publish?.comments || '',
+      saves: entry.publish?.saves || '',
+      notes: entry.publish?.notes || '',
+    },
+  };
+}
 
 function loadState() {
   try {
@@ -79,8 +107,10 @@ function generateDraft(entry) {
 }
 
 function App() {
-  const [entries, setEntries] = useState(() => loadState()?.entries || defaultEntries);
+  const [entries, setEntries] = useState(() => (loadState()?.entries || defaultEntries).map(normalizeEntry));
   const [reminder, setReminder] = useState(() => loadState()?.reminder || '21:30');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [notificationStatus, setNotificationStatus] = useState(() =>
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
   );
@@ -113,12 +143,23 @@ function App() {
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
+    const published = entries.filter((entry) => entry.publish?.status === 'published').length;
     return {
       total: entries.length,
       todayDone: entries.some((entry) => new Date(entry.date).toDateString() === today && countText(entry.content) >= 200),
       words: entries.reduce((sum, entry) => sum + countText(entry.content), 0),
+      published,
     };
   }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    return entries.filter((entry) => {
+      const typeMatched = typeFilter === 'all' || entry.type === typeFilter || entry.publish?.status === typeFilter;
+      const text = [entry.title, entry.content, entry.generated, ...(entry.tags || [])].join(' ').toLowerCase();
+      return typeMatched && (!keyword || text.includes(keyword));
+    });
+  }, [entries, searchTerm, typeFilter]);
 
   function createEntry(type) {
     const entry = {
@@ -129,6 +170,15 @@ function App() {
       content: '',
       draftType: 'speech',
       generated: '',
+      tags: [],
+      publish: {
+        status: 'draft',
+        views: '',
+        likes: '',
+        comments: '',
+        saves: '',
+        notes: '',
+      },
     };
     setEntries((current) => [entry, ...current]);
     setActiveId(entry.id);
@@ -136,6 +186,25 @@ function App() {
 
   function updateEntry(id, patch) {
     setEntries((current) => current.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)));
+  }
+
+  function updatePublish(id, patch) {
+    updateEntry(id, {
+      publish: {
+        ...(entries.find((entry) => entry.id === id)?.publish || {}),
+        ...patch,
+      },
+    });
+  }
+
+  function updateTags(id, value) {
+    updateEntry(id, {
+      tags: value
+        .split(/[，,\s]+/)
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+        .slice(0, 8),
+    });
   }
 
   async function polishWithAi() {
@@ -230,6 +299,10 @@ function App() {
                   <span>字数</span>
                   <strong>{stats.words}</strong>
                 </div>
+                <div>
+                  <span>已发</span>
+                  <strong>{stats.published}</strong>
+                </div>
               </div>
             </section>
 
@@ -272,6 +345,17 @@ function App() {
                   onChange={(event) => updateEntry(activeEntry.id, { content: event.target.value })}
                   placeholder="记录现象、人物、对话、交易信号或反常识细节。先写真实素材，再整理成可复用的判断材料。"
                 />
+
+                <label className="field-label" htmlFor="entry-tags">标签</label>
+                <div className="tag-input-wrap">
+                  <Tags size={17} />
+                  <input
+                    id="entry-tags"
+                    value={(activeEntry.tags || []).join('，')}
+                    onChange={(event) => updateTags(activeEntry.id, event.target.value)}
+                    placeholder="行业、人群、场景、动机，逗号分隔"
+                  />
+                </div>
 
                 <div className="progress-row">
                   <div className="progress-track">
@@ -337,17 +421,94 @@ function App() {
                   <Archive size={18} />
                 </button>
               </div>
-              {entries.map((entry) => (
+              <div className="library-tools">
+                <label className="search-box">
+                  <Search size={16} />
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="搜索标题、正文、标签"
+                  />
+                </label>
+                <div className="filter-tabs" aria-label="发现库筛选">
+                  {[
+                    ['all', '全部'],
+                    ['business', '商机'],
+                    ['human', '人性'],
+                    ['published', '已发布'],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={typeFilter === value ? 'active' : ''}
+                      onClick={() => setTypeFilter(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {filteredEntries.map((entry) => (
                 <button
                   key={entry.id}
                   className={entry.id === activeId ? 'history-item active' : 'history-item'}
                   onClick={() => setActiveId(entry.id)}
                 >
                   <span>{entry.title || '未命名发现'}</span>
-                  <small>{countText(entry.content)} 字</small>
+                  <small>{entry.publish?.status === 'published' ? '已发布' : `${countText(entry.content)} 字`}</small>
+                  {(entry.tags || []).length > 0 && <em>{entry.tags.slice(0, 3).join(' / ')}</em>}
                 </button>
               ))}
+              {filteredEntries.length === 0 && <p className="empty-list">没有匹配的发现。</p>}
             </section>
+
+            {activeEntry && (
+              <section className="publish-panel">
+                <div className="section-title">
+                  <Eye size={18} />
+                  <h2>发布反馈</h2>
+                </div>
+                <div className="publish-status" aria-label="发布状态">
+                  {[
+                    ['draft', '未发布'],
+                    ['published', '已发布'],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={activeEntry.publish?.status === value ? 'active' : ''}
+                      onClick={() => updatePublish(activeEntry.id, { status: value })}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="metrics-grid">
+                  {[
+                    ['views', '播放'],
+                    ['likes', '点赞'],
+                    ['comments', '评论'],
+                    ['saves', '收藏'],
+                  ].map(([key, label]) => (
+                    <label key={key}>
+                      <span>{label}</span>
+                      <input
+                        value={activeEntry.publish?.[key] || ''}
+                        inputMode="numeric"
+                        onChange={(event) => updatePublish(activeEntry.id, { [key]: event.target.value })}
+                        placeholder="0"
+                      />
+                    </label>
+                  ))}
+                </div>
+                <label className="feedback-note">
+                  <span><MessageCircle size={15} /> 反馈记录</span>
+                  <textarea
+                    value={activeEntry.publish?.notes || ''}
+                    onChange={(event) => updatePublish(activeEntry.id, { notes: event.target.value })}
+                    placeholder="记录评论区、私信、选题反馈，方便 7 天后复盘。"
+                  />
+                </label>
+              </section>
+            )}
           </aside>
         </div>
       </section>

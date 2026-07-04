@@ -10,6 +10,7 @@ export async function onRequestPost(context) {
     const typeName = input.type === 'business' ? '商机发现' : '人性发现';
     const outputName =
       input.draftType === 'speech' ? '口播稿' : input.draftType === 'research' ? '详细研究文档' : '行动清单';
+    const tags = Array.isArray(input.tags) && input.tags.length > 0 ? input.tags.join('、') : '无';
 
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
@@ -27,7 +28,7 @@ export async function onRequestPost(context) {
           },
           {
             role: 'user',
-            content: `类型：${typeName}\n输出形式：${outputName}\n标题：${input.title || ''}\n原始记录：${input.content || ''}`,
+            content: `类型：${typeName}\n输出形式：${outputName}\n标签：${tags}\n标题：${input.title || ''}\n原始记录：${input.content || ''}`,
           },
         ],
       }),
