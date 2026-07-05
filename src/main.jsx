@@ -4,16 +4,16 @@ import {
   AlarmClock,
   Archive,
   Bell,
-  BookOpenText,
   BriefcaseBusiness,
   CheckCircle2,
   ChevronRight,
   Eye,
   FileText,
+  Globe2,
   Lightbulb,
   MessageCircle,
-  Mic2,
   Search,
+  Send,
   Tags,
   UserRoundSearch,
 } from 'lucide-react';
@@ -29,8 +29,10 @@ const defaultEntries = [
     title: '线下门店的私域复购机会',
     content:
       '今天观察到一家社区咖啡店把新品试喝和会员群结合起来，用户在店内扫码后会收到第二天的限时复购券。这个动作不复杂，但把到店体验、微信群运营和复购激励连在了一起。真正的商机可能不在咖啡本身，而在帮助小店主把一次性客流转成可持续触达的关系资产。很多小店并不缺产品，也不缺短期促销，真正缺的是把顾客重新带回来的低成本机制。如果能做一个轻量工具，自动生成活动话术、优惠节奏和复购提醒，再结合店员执行清单，就可能切入大量社区门店。',
-    draftType: 'speech',
-    generated: '',
+    research: '',
+    researchSources: [],
+    discussion: [],
+    speechScript: '',
     tags: ['社区门店', '私域复购'],
     publish: {
       status: 'draft',
@@ -47,6 +49,10 @@ function normalizeEntry(entry) {
   return {
     ...entry,
     tags: Array.isArray(entry.tags) ? entry.tags : [],
+    research: entry.research || '',
+    researchSources: Array.isArray(entry.researchSources) ? entry.researchSources : [],
+    discussion: Array.isArray(entry.discussion) ? entry.discussion : [],
+    speechScript: entry.speechScript || entry.generated || '',
     publish: {
       status: entry.publish?.status || 'draft',
       views: entry.publish?.views || '',
@@ -83,27 +89,54 @@ function formatDate(date) {
   }).format(new Date(date));
 }
 
-function generateDraft(entry) {
+function generateResearchFallback(entry) {
   const topic = entry.type === 'business' ? '商机发现' : '人性发现';
-  const style =
-    entry.draftType === 'speech'
-      ? '口播稿'
-      : entry.draftType === 'research'
-        ? '研究文档'
-        : '行动清单';
 
   if (!entry.content.trim()) return '';
 
-  const intro =
-    entry.draftType === 'speech'
-      ? `大家好，今天想和你分享一个关于「${topic}」的观察。`
-      : `# ${entry.title || topic}\n\n## 核心观察`;
-  const body =
-    entry.draftType === 'speech'
-      ? `\n\n我的原始记录是：${entry.content.trim()}\n\n这件事值得展开，是因为它不只是一个表面现象，而是暴露出需求、动机和行为之间的连接。第一，用户已经表现出明确的场景需求；第二，现有解决方案还有摩擦；第三，如果把这个发现产品化，就可以形成更稳定的价值交换。\n\n如果要继续验证，我会从三个问题开始：谁最痛、他们现在怎么解决、他们愿意为什么付费。只要这三个问题能被真实答案支撑，这个发现就不只是灵感，而可能成为一个可以推进的机会。`
-      : `\n\n${entry.content.trim()}\n\n## 深度拆解\n\n1. 背景：这个发现来自真实场景中的行为、表达或交易信号，需要优先保留原始语境。\n2. 关键洞察：表面现象背后存在一个更稳定的动机结构，可能是效率、信任、身份、利益或安全感。\n3. 可验证假设：如果这个洞察成立，类似人群在相近场景中会重复出现同类选择。\n4. 下一步：设计一次小规模验证，记录对象、触发点、反馈和转化行为。\n\n## 可执行结论\n\n把今天的发现整理成一个待验证假设，并在未来 3 天内寻找至少 5 个相似样本。`;
+  return `# ${entry.title || topic}
 
-  return `${style}\n\n${intro}${body}`;
+> 当前是本地兜底版本：尚未调用联网研究接口。配置 OPENAI_API_KEY 后，系统会使用联网搜索生成带来源的研究报告。
+
+## 你的原始发现
+
+${entry.content.trim()}
+
+## 初步判断
+
+这个发现值得研究，因为它指向一个正在变大的问题：当 AI Agent 从“信息助手”进入“交易、决策、身份、资金操作”场景后，信任、安全、授权和追责会成为基础设施级问题。
+
+## 需要继续调研的方向
+
+1. Agent 身份与授权：谁有权让 Agent 代表用户行动。
+2. 操作留痕与责任追溯：当 Agent 出错、被攻击或被诱导时，责任如何确认。
+3. 资金与隐私风险：支付、订票、购物、企业工作流会放大安全问题。
+4. 区块链或可验证凭证是否适合解决身份与审计问题。
+
+## 可验证假设
+
+如果个人和企业开始把真实交易交给 Agent，那么“Agent 身份、权限、审计、保险、风控”可能形成一个新的基础设施市场。`;
+}
+
+function generateScriptFallback(entry) {
+  const research = entry.research || generateResearchFallback(entry);
+  return `大家好，今天想聊一个我最近观察到的商机：${entry.title || 'AI Agent 的可信问题'}。
+
+我原本只是想到，未来 Agent 可能会帮我们订机票、买饭、记账、网购，甚至帮企业自动处理工作流。但越想越觉得这里有一个很大的问题：如果这个 Agent 被攻击、被诱导，或者被别人操控了，损失到底算谁的？
+
+这背后其实不是一个简单的安全问题，而是一个未来基础设施问题。因为 Agent 一旦开始代表人行动，它就需要身份、授权、留痕、追责。否则它越强，风险越大。
+
+我看到的机会是：未来可能会出现一类专门服务 AI Agent 的信任系统。它可能包括 Agent 身份绑定、权限管理、操作审计、资金风控，甚至保险机制。区块链、可验证凭证、企业权限系统，都有可能参与进来。
+
+所以今天这个发现给我的启发是：AI Agent 真正大规模普及之前，最先被需要的未必是更聪明的 Agent，而是让人敢把事情交给 Agent 的信任基础设施。
+
+如果你也在做 AI Agent，或者正在研究自动化工作流，可以思考一个问题：你的 Agent 做错事以后，谁知道它为什么错，谁能证明它被谁指挥，谁来承担后果？
+
+这可能就是下一个很大的商机。`;
+}
+
+function generateDiscussionFallback(question) {
+  return `我会从三个角度继续拆：第一，这个问题是否真实高频；第二，谁最先愿意为安全和追责付费；第三，现有方案为什么不够。你刚才问的是「${question}」，我建议把它落到一个具体场景里，比如“企业 Agent 自动付款前需要什么审批和留痕”。`;
 }
 
 function App() {
@@ -111,10 +144,11 @@ function App() {
   const [reminder, setReminder] = useState(() => loadState()?.reminder || '21:30');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [discussionInput, setDiscussionInput] = useState('');
   const [notificationStatus, setNotificationStatus] = useState(() =>
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
   );
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [busyAction, setBusyAction] = useState('');
   const [activeId, setActiveId] = useState(() => entries[0]?.id || 'today');
   const activeEntry = entries.find((entry) => entry.id === activeId) || entries[0];
 
@@ -156,7 +190,7 @@ function App() {
     const keyword = searchTerm.trim().toLowerCase();
     return entries.filter((entry) => {
       const typeMatched = typeFilter === 'all' || entry.type === typeFilter || entry.publish?.status === typeFilter;
-      const text = [entry.title, entry.content, entry.generated, ...(entry.tags || [])].join(' ').toLowerCase();
+      const text = [entry.title, entry.content, entry.research, entry.speechScript, ...(entry.tags || [])].join(' ').toLowerCase();
       return typeMatched && (!keyword || text.includes(keyword));
     });
   }, [entries, searchTerm, typeFilter]);
@@ -168,8 +202,10 @@ function App() {
       type,
       title: type === 'business' ? '新的商机发现' : '新的人性发现',
       content: '',
-      draftType: 'speech',
-      generated: '',
+      research: '',
+      researchSources: [],
+      discussion: [],
+      speechScript: '',
       tags: [],
       publish: {
         status: 'draft',
@@ -207,23 +243,64 @@ function App() {
     });
   }
 
-  async function polishWithAi() {
+  async function callAi(endpoint, fallback, payload = {}) {
     if (!activeEntry) return;
-    setIsGenerating(true);
     try {
-      const response = await fetch('/api/polish', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(activeEntry),
+        body: JSON.stringify({
+          entry: activeEntry,
+          ...payload,
+        }),
       });
       if (!response.ok) throw new Error('AI service unavailable');
-      const data = await response.json();
-      updateEntry(activeEntry.id, { generated: data.generated || generateDraft(activeEntry) });
+      return await response.json();
     } catch {
-      updateEntry(activeEntry.id, { generated: generateDraft(activeEntry) });
-    } finally {
-      setIsGenerating(false);
+      return fallback();
     }
+  }
+
+  async function researchWithAi() {
+    if (!activeEntry) return;
+    setBusyAction('research');
+    const data = await callAi('/api/research', () => ({
+      research: generateResearchFallback(activeEntry),
+      sources: [],
+    }));
+    updateEntry(activeEntry.id, {
+      research: data.research || generateResearchFallback(activeEntry),
+      researchSources: data.sources || [],
+    });
+    setBusyAction('');
+  }
+
+  async function discussWithAi() {
+    if (!activeEntry || !discussionInput.trim()) return;
+    const question = discussionInput.trim();
+    const nextDiscussion = [...(activeEntry.discussion || []), { role: 'user', content: question }];
+    updateEntry(activeEntry.id, { discussion: nextDiscussion });
+    setDiscussionInput('');
+    setBusyAction('discuss');
+    const data = await callAi('/api/discuss', () => ({
+      answer: generateDiscussionFallback(question),
+    }), { question, discussion: nextDiscussion });
+    updateEntry(activeEntry.id, {
+      discussion: [...nextDiscussion, { role: 'assistant', content: data.answer || generateDiscussionFallback(question) }],
+    });
+    setBusyAction('');
+  }
+
+  async function generateSpeechScript() {
+    if (!activeEntry) return;
+    setBusyAction('script');
+    const data = await callAi('/api/script', () => ({
+      script: generateScriptFallback(activeEntry),
+    }));
+    updateEntry(activeEntry.id, {
+      speechScript: data.script || generateScriptFallback(activeEntry),
+    });
+    setBusyAction('');
   }
 
   async function enableReminder() {
@@ -365,53 +442,95 @@ function App() {
                 </div>
 
                 <div className="section-title compact">
-                  <FileText size={18} />
-                  <h2>转换输出格式</h2>
-                </div>
-                <div className="draft-tabs">
-                  {[
-                    ['speech', Mic2, '口播稿'],
-                    ['research', BookOpenText, '研究文档'],
-                    ['action', CheckCircle2, '行动清单'],
-                  ].map(([value, Icon, label]) => (
-                    <button
-                      key={value}
-                      className={activeEntry.draftType === value ? 'active' : ''}
-                      onClick={() => updateEntry(activeEntry.id, { draftType: value })}
-                    >
-                      <Icon size={15} />
-                      {label}
-                    </button>
-                  ))}
+                  <Globe2 size={18} />
+                  <h2>研究流程</h2>
                 </div>
 
-                <button className="ai-button" onClick={polishWithAi} disabled={count < 200 || isGenerating}>
-                  <FileText size={19} />
-                  {isGenerating ? '整理中' : '深度提炼发现'}
+                <button className="ai-button" onClick={researchWithAi} disabled={count < 200 || busyAction === 'research'}>
+                  <Globe2 size={19} />
+                  {busyAction === 'research' ? '正在联网研究' : '开始联网深度研究'}
                   <ChevronRight size={18} />
                 </button>
 
-                {count < 200 && <p className="hint">还差 {remaining} 字，达到门槛后可生成完整文稿。</p>}
+                {count < 200 && <p className="hint">还差 {remaining} 字，达到门槛后可开始研究。</p>}
+                <p className="hint">先让 AI 基于你的发现做调研和判断，再在右侧讨论，最后生成口播稿。</p>
               </section>
             )}
           </section>
 
           <aside className="insight-panel">
-            {activeEntry?.generated ? (
-              <article className="generated">
-                <div>
-                  <FileText size={18} />
-                  <strong>整理稿预览</strong>
+            <section className="research-panel">
+              <div className="section-title">
+                <Globe2 size={18} />
+                <h2>研究与讨论</h2>
+              </div>
+              {activeEntry?.research ? (
+                <article className="research-report">
+                  <pre>{activeEntry.research}</pre>
+                  {(activeEntry.researchSources || []).length > 0 && (
+                    <div className="source-list">
+                      <strong>参考来源</strong>
+                      {activeEntry.researchSources.slice(0, 6).map((source, index) => (
+                        <a key={`${source.url}-${index}`} href={source.url} target="_blank" rel="noreferrer">
+                          {source.title || source.url}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ) : (
+                <section className="empty-generated">
+                  <Globe2 size={22} />
+                  <strong>研究报告会显示在这里</strong>
+                  <span>写满 200 字后，点击左侧“开始联网深度研究”。</span>
+                </section>
+              )}
+
+              <div className="discussion-box">
+                <div className="discussion-list">
+                  {(activeEntry?.discussion || []).length === 0 ? (
+                    <p className="empty-list">研究完成后，可以继续追问：这个机会谁会买单？怎么验证？风险在哪里？</p>
+                  ) : (
+                    activeEntry.discussion.map((message, index) => (
+                      <div key={index} className={`message ${message.role}`}>
+                        <span>{message.role === 'user' ? '我' : 'AI'}</span>
+                        <p>{message.content}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
-                <pre>{activeEntry.generated}</pre>
-              </article>
-            ) : (
-              <section className="empty-generated">
-                <FileText size={22} />
-                <strong>整理稿会显示在这里</strong>
-                <span>写满 200 字后，可以整理成口播稿、研究文档或行动清单。</span>
-              </section>
-            )}
+                <div className="discussion-input">
+                  <input
+                    value={discussionInput}
+                    onChange={(event) => setDiscussionInput(event.target.value)}
+                    placeholder="继续追问或补充你的判断"
+                  />
+                  <button onClick={discussWithAi} disabled={!discussionInput.trim() || busyAction === 'discuss'}>
+                    <Send size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <button
+                className="ai-button secondary"
+                onClick={generateSpeechScript}
+                disabled={!activeEntry?.research || busyAction === 'script'}
+              >
+                <FileText size={18} />
+                {busyAction === 'script' ? '正在生成口播稿' : '基于研究和讨论生成口播稿'}
+                <ChevronRight size={18} />
+              </button>
+
+              {activeEntry?.speechScript && (
+                <article className="generated">
+                  <div>
+                    <FileText size={18} />
+                    <strong>口播稿</strong>
+                  </div>
+                  <pre>{activeEntry.speechScript}</pre>
+                </article>
+              )}
+            </section>
 
             <section className="history">
               <div className="section-title">
