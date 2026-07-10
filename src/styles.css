@@ -528,6 +528,49 @@ textarea {
   margin-bottom: 0;
 }
 
+.research-meta {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.research-meta span {
+  min-height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.research-meta .verified {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.research-meta .caution {
+  color: #7a4d13;
+  background: var(--accent-soft);
+}
+
+.research-meta small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.research-notice {
+  border: 1px solid #e8d6b8;
+  border-radius: 8px;
+  padding: 10px;
+  color: #69430f;
+  background: #fff7e8;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .research-report {
   max-height: 420px;
   overflow: auto;

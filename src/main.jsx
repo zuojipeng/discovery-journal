@@ -31,6 +31,7 @@ const defaultEntries = [
       '今天观察到一家社区咖啡店把新品试喝和会员群结合起来，用户在店内扫码后会收到第二天的限时复购券。这个动作不复杂，但把到店体验、微信群运营和复购激励连在了一起。真正的商机可能不在咖啡本身，而在帮助小店主把一次性客流转成可持续触达的关系资产。很多小店并不缺产品，也不缺短期促销，真正缺的是把顾客重新带回来的低成本机制。如果能做一个轻量工具，自动生成活动话术、优惠节奏和复购提醒，再结合店员执行清单，就可能切入大量社区门店。',
     research: '',
     researchSources: [],
+    researchMeta: {},
     discussion: [],
     speechScript: '',
     tags: ['社区门店', '私域复购'],
@@ -51,6 +52,7 @@ function normalizeEntry(entry) {
     tags: Array.isArray(entry.tags) ? entry.tags : [],
     research: entry.research || '',
     researchSources: Array.isArray(entry.researchSources) ? entry.researchSources : [],
+    researchMeta: entry.researchMeta || {},
     discussion: Array.isArray(entry.discussion) ? entry.discussion : [],
     speechScript: entry.speechScript || entry.generated || '',
     publish: {
@@ -96,7 +98,7 @@ function generateResearchFallback(entry) {
 
   return `# ${entry.title || topic}
 
-> 当前是本地兜底版本：尚未调用联网研究接口。配置 OPENAI_API_KEY 后，系统会使用联网搜索生成带来源的研究报告。
+> 当前是本地兜底版本：尚未调用 AI 研究接口。配置 AI 模型 Key 和搜索 Key 后，系统会生成带来源的研究报告。
 
 ## 你的原始发现
 
@@ -204,6 +206,7 @@ function App() {
       content: '',
       research: '',
       researchSources: [],
+      researchMeta: {},
       discussion: [],
       speechScript: '',
       tags: [],
@@ -267,10 +270,20 @@ function App() {
     const data = await callAi('/api/research', () => ({
       research: generateResearchFallback(activeEntry),
       sources: [],
+      mode: 'local_fallback',
+      notice: '当前是本地兜底版本，没有调用 AI 模型或搜索接口。',
+      provider: 'local',
+      model: 'fallback',
     }));
     updateEntry(activeEntry.id, {
       research: data.research || generateResearchFallback(activeEntry),
       researchSources: data.sources || [],
+      researchMeta: {
+        mode: data.mode || 'model_only',
+        notice: data.notice || '',
+        provider: data.provider || '',
+        model: data.model || '',
+      },
     });
     setBusyAction('');
   }
@@ -448,7 +461,7 @@ function App() {
 
                 <button className="ai-button" onClick={researchWithAi} disabled={count < 200 || busyAction === 'research'}>
                   <Globe2 size={19} />
-                  {busyAction === 'research' ? '正在联网研究' : '开始联网深度研究'}
+                  {busyAction === 'research' ? '正在研究' : '开始深度研究'}
                   <ChevronRight size={18} />
                 </button>
 
@@ -465,24 +478,37 @@ function App() {
                 <h2>研究与讨论</h2>
               </div>
               {activeEntry?.research ? (
-                <article className="research-report">
-                  <pre>{activeEntry.research}</pre>
-                  {(activeEntry.researchSources || []).length > 0 && (
-                    <div className="source-list">
-                      <strong>参考来源</strong>
-                      {activeEntry.researchSources.slice(0, 6).map((source, index) => (
-                        <a key={`${source.url}-${index}`} href={source.url} target="_blank" rel="noreferrer">
-                          {source.title || source.url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </article>
+                <>
+                  <div className="research-meta">
+                    <span className={activeEntry.researchMeta?.mode === 'web_researched' ? 'verified' : 'caution'}>
+                      {activeEntry.researchMeta?.mode === 'web_researched' ? '已联网研究' : '未确认联网'}
+                    </span>
+                    {(activeEntry.researchMeta?.provider || activeEntry.researchMeta?.model) && (
+                      <small>
+                        {[activeEntry.researchMeta?.provider, activeEntry.researchMeta?.model].filter(Boolean).join(' / ')}
+                      </small>
+                    )}
+                  </div>
+                  {activeEntry.researchMeta?.notice && <p className="research-notice">{activeEntry.researchMeta.notice}</p>}
+                  <article className="research-report">
+                    <pre>{activeEntry.research}</pre>
+                    {(activeEntry.researchSources || []).length > 0 && (
+                      <div className="source-list">
+                        <strong>参考来源</strong>
+                        {activeEntry.researchSources.slice(0, 6).map((source, index) => (
+                          <a key={`${source.url}-${index}`} href={source.url} target="_blank" rel="noreferrer">
+                            {source.title || source.url}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                </>
               ) : (
                 <section className="empty-generated">
                   <Globe2 size={22} />
                   <strong>研究报告会显示在这里</strong>
-                  <span>写满 200 字后，点击左侧“开始联网深度研究”。</span>
+                  <span>写满 200 字后，点击左侧“开始深度研究”。</span>
                 </section>
               )}
 
